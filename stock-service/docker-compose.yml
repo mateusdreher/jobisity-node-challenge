@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  db-stock:
+    image: mongo
+    container_name: db
+    restart: always
+    environment: 
+      MONGO_INITDB_DATABASE: stock
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: Passw0rd
+    ports: 
+      - "27018:27017"
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - stock-consult-network
+
+  redis-logs-stock:
+    image: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    networks:
+      - stock-consult-network
+
+  api-stock:
+    build: 
+      context: .
+    ports:
+      - "3005:3000"
+    depends_on:
+      - db-stock
+      - redis-logs-stock
+    networks:
+      - stock-consult-network
+
+networks:
+  stock-consult-network:
+    external: true
